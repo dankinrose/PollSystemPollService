@@ -2,11 +2,26 @@ from pydantic import BaseSettings
 
 
 class Config(BaseSettings):
+    # DB
     MYSQL_USER: str = "user"
     MYSQL_PASSWORD: str = "password"
     MYSQL_DATABASE: str = "poll_service"
-    MYSQL_HOST: str = "localhost"
-    MYSQL_PORT: str = "3307"
-    DATABASE_URL: str = f"mysql+aiomysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}"
 
-    USER_SERVICE_BASE_URL = "http://localhost:8000"
+    # 👇 חשוב מאוד: שם ה־service ב־docker-compose
+    MYSQL_HOST: str = "poll-db"
+
+    # 👇 בתוך Docker תמיד 3306
+    MYSQL_PORT: str = "3306"
+
+    @property
+    def DATABASE_URL(self) -> str:
+        return (
+            f"mysql+aiomysql://{self.MYSQL_USER}:{self.MYSQL_PASSWORD}"
+            f"@{self.MYSQL_HOST}:{self.MYSQL_PORT}/{self.MYSQL_DATABASE}"
+        )
+
+    # Internal API (גם זה בתוך Docker)
+    USER_SERVICE_BASE_URL: str = "http://user-service:8000"
+
+    class Config:
+        env_file = ".env"
